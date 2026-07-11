@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, ArrowRight, AlertCircle, Sparkles, Flame, Clock, Trophy, Heart, Zap, LayoutGrid, Volume2, VolumeX, BarChart3, Medal, BrainCircuit, Activity, User, Bot } from "lucide-react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface Question {
   id: number;
@@ -24,6 +24,7 @@ const DEFAULT_ROUND_TIME = 15;
 const LIGHTNING_TOTAL_TIME = 30;
 
 function PlayAreaContent() {
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -388,7 +389,7 @@ function PlayAreaContent() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ username, score })
                     });
-                    window.location.href = "/leaderboard";
+                    router.push("/leaderboard");
                   } catch (e) {
                     console.error(e);
                     setIsSubmitting(false);
