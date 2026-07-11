@@ -85,7 +85,7 @@ new_questions = [
     ),
     models.Question(
         type="video",
-        content_url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        content_url="https://www.w3schools.com/html/mov_bbb.mp4",
         is_ai=0,
         explanation="This is real (human-made animation). AI video generation currently struggles with maintaining consistent physics, geometry, and character consistency over long periods.",
         difficulty="medium",

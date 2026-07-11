@@ -41,12 +41,14 @@ class UserResponse(BaseModel):
 class QuestionResponse(BaseModel):
     id: int
     type: str
-    content_url: Optional[str]
-    text_content: Optional[str]
-    is_ai: int
+    content_url: Optional[str] = None
+    text_content: Optional[str] = None
+    is_ai: Optional[int] = None
+    options: Optional[str] = None
+    correct_option: Optional[int] = None
     explanation: str
     difficulty: str
-    category: Optional[str]
+    category: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
