@@ -354,10 +354,17 @@ function PlayAreaContent() {
                 <p className="text-xs text-green-400 font-bold uppercase tracking-wider mb-1">Strongest Domain</p>
                 <p className="text-lg font-bold text-white">{bestCat} <span className="text-green-400 text-sm">({Math.round(bestAcc)}%)</span></p>
              </div>
-             <div className="bg-red-500/10 p-4 rounded-2xl border border-red-500/20 text-left">
-                <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Needs Improvement</p>
-                <p className="text-lg font-bold text-white">{weakCat} <span className="text-red-400 text-sm">({Math.round(weakAcc)}%)</span></p>
-             </div>
+             {weakAcc === 100 ? (
+               <div className="bg-green-500/10 p-4 rounded-2xl border border-green-500/20 text-left">
+                  <p className="text-xs text-green-400 font-bold uppercase tracking-wider mb-1">Mastery Achieved</p>
+                  <p className="text-lg font-bold text-white">Flawless Performance</p>
+               </div>
+             ) : (
+               <div className="bg-red-500/10 p-4 rounded-2xl border border-red-500/20 text-left">
+                  <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Needs Improvement</p>
+                  <p className="text-lg font-bold text-white">{weakCat} <span className="text-red-400 text-sm">({Math.round(weakAcc)}%)</span></p>
+               </div>
+             )}
           </div>
 
           <div className="pt-8 flex flex-col items-center gap-4 border-t border-white/10 mt-8">
