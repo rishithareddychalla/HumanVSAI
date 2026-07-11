@@ -17,7 +17,9 @@ class Question(Base):
     type = Column(String) # 'image', 'text', 'code', 'voice', 'artwork'
     content_url = Column(String, nullable=True) # for media
     text_content = Column(String, nullable=True) # for text/code
-    is_ai = Column(Integer) # 1 for AI, 0 for Human
+    is_ai = Column(Integer, nullable=True) # 1 for AI, 0 for Human. Null for MCQs
+    options = Column(String, nullable=True) # JSON string of options, e.g. '["Option A", "Option B"]'
+    correct_option = Column(Integer, nullable=True) # Index of the correct option in the options array
     explanation = Column(String)
     difficulty = Column(String) # 'easy', 'medium', 'hard'
     category = Column(String)

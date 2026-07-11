@@ -12,7 +12,9 @@ interface Question {
   type: string;
   content_url: string | null;
   text_content: string | null;
-  is_ai: number;
+  is_ai: number | null;
+  options: string | null;
+  correct_option: number | null;
   explanation: string;
   difficulty: string;
   category: string;
@@ -181,7 +183,7 @@ function PlayAreaContent() {
     }
   };
 
-  const handleAnswer = (guessedAI: boolean) => {
+  const handleAnswer = (guessedAI: boolean | null, guessedOptionIndex: number | null = null) => {
     if (hasAnswered) return;
     if (timerRef.current) clearInterval(timerRef.current);
     
@@ -189,8 +191,14 @@ function PlayAreaContent() {
     setTotalTimeTaken(prev => prev + timeSpent);
 
     const currentQ = questions[currentIndex];
-    const actuallyAI = currentQ.is_ai === 1;
-    const correct = guessedAI === actuallyAI;
+    
+    let correct = false;
+    if (currentQ.type === 'multiple_choice' && guessedOptionIndex !== null) {
+      correct = guessedOptionIndex === currentQ.correct_option;
+    } else if (guessedAI !== null) {
+      const actuallyAI = currentQ.is_ai === 1;
+      correct = guessedAI === actuallyAI;
+    }
     
     setIsCorrect(correct);
     setHasAnswered(true);
@@ -509,10 +517,10 @@ function PlayAreaContent() {
               </div>
             )}
             
-            {(q.type === 'text' || q.type === 'code') && q.text_content && (
-              <div className="w-full max-w-4xl bg-[#09090b] p-8 rounded-2xl border border-white/10 font-mono text-sm overflow-x-auto shadow-inner">
-                {q.type === 'code' && <div className="mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Code Snippet</div>}
-                <pre className="whitespace-pre-wrap text-gray-300 text-base leading-relaxed">{q.text_content}</pre>
+            {(q.type === 'text' || q.type === 'code' || q.type === 'multiple_choice') && q.text_content && (
+              <div className="w-full max-w-4xl bg-[#09090b] p-8 rounded-2xl border border-white/20 font-sans text-lg overflow-x-auto shadow-inner">
+                {q.type === 'code' && <div className="mb-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Code Snippet</div>}
+                <pre className={`whitespace-pre-wrap text-gray-100 leading-relaxed ${q.type === 'code' ? 'font-mono text-base' : 'text-xl font-medium'}`}>{q.text_content}</pre>
               </div>
             )}
 
@@ -560,48 +568,80 @@ function PlayAreaContent() {
             )}
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-20">
-        <button
-          onClick={() => handleAnswer(false)}
-          disabled={hasAnswered}
-          className={`relative overflow-hidden group p-8 rounded-3xl font-black text-2xl tracking-wide transition-all duration-300 ${
-            hasAnswered 
-              ? q.is_ai === 0 
-                ? 'bg-green-500/20 text-green-400 border-green-500/50 border-2 shadow-[0_0_30px_rgba(34,197,94,0.3)]' 
-                : 'bg-white/5 text-muted-foreground opacity-50 border-2 border-transparent grayscale'
-              : 'bg-[#111827] hover:bg-[#1f2937] text-white border-2 border-white/10 hover:border-green-500/50 hover:scale-[1.02] shadow-xl'
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-          {hasAnswered && q.is_ai === 0 && <Check className="absolute top-1/2 right-8 -translate-y-1/2 w-10 h-10 text-green-400" />}
-          <span className="flex items-center justify-center gap-3">
-             <User className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-opacity" />
-             HUMAN
-          </span>
-        </button>
+          {/* Action Buttons */}
+      <div className={`grid gap-6 relative z-20 ${q.type === 'multiple_choice' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
         
-        <button
-          onClick={() => handleAnswer(true)}
-          disabled={hasAnswered}
-          className={`relative overflow-hidden group p-8 rounded-3xl font-black text-2xl tracking-wide transition-all duration-300 ${
-            hasAnswered 
-              ? q.is_ai === 1 
-                ? 'bg-primary/20 text-primary border-primary/50 border-2 shadow-[0_0_30px_rgba(139,92,246,0.4)]' 
-                : 'bg-white/5 text-muted-foreground opacity-50 border-2 border-transparent grayscale'
-              : 'bg-[#111827] hover:bg-[#1f2937] text-white border-2 border-white/10 hover:border-primary/50 hover:scale-[1.02] shadow-xl'
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-          {hasAnswered && q.is_ai === 1 && <Check className="absolute top-1/2 right-8 -translate-y-1/2 w-10 h-10 text-primary" />}
-          <span className="flex items-center justify-center gap-3">
-             <Bot className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-opacity" />
-             AI GENERATED
-          </span>
-        </button>
-      </div>
+        {q.type === 'multiple_choice' && q.options ? (
+          JSON.parse(q.options).map((option: string, index: number) => {
+            const isCorrectOption = index === q.correct_option;
+            const isSelected = hasAnswered; // Disable all if answered
+            
+            let btnClass = 'bg-[#111827] hover:bg-[#1f2937] text-white border-2 border-white/10 hover:border-primary/50 shadow-xl';
+            
+            if (hasAnswered) {
+              if (isCorrectOption) {
+                 btnClass = 'bg-primary/20 text-primary border-primary/50 border-2 shadow-[0_0_30px_rgba(139,92,246,0.4)]';
+              } else {
+                 btnClass = 'bg-white/5 text-muted-foreground opacity-50 border-2 border-transparent grayscale';
+              }
+            }
+            
+            return (
+              <button
+                key={index}
+                onClick={() => handleAnswer(null, index)}
+                disabled={hasAnswered}
+                className={`relative overflow-hidden group p-6 rounded-2xl font-bold text-lg md:text-xl tracking-wide transition-all duration-300 ${btnClass} hover:scale-[1.02]`}
+              >
+                {hasAnswered && isCorrectOption && <Check className="absolute top-1/2 right-4 -translate-y-1/2 w-6 h-6 text-primary" />}
+                <span className="flex items-center text-left">
+                   {option}
+                </span>
+              </button>
+            )
+          })
+        ) : (
+          <>
+            <button
+              onClick={() => handleAnswer(false)}
+              disabled={hasAnswered}
+              className={`relative overflow-hidden group p-8 rounded-3xl font-black text-2xl tracking-wide transition-all duration-300 ${
+                hasAnswered 
+                  ? q.is_ai === 0 
+                    ? 'bg-green-500/20 text-green-400 border-green-500/50 border-2 shadow-[0_0_30px_rgba(34,197,94,0.3)]' 
+                    : 'bg-white/5 text-muted-foreground opacity-50 border-2 border-transparent grayscale'
+                  : 'bg-[#111827] hover:bg-[#1f2937] text-white border-2 border-white/10 hover:border-green-500/50 hover:scale-[1.02] shadow-xl'
+              }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              {hasAnswered && q.is_ai === 0 && <Check className="absolute top-1/2 right-8 -translate-y-1/2 w-10 h-10 text-green-400" />}
+              <span className="flex items-center justify-center gap-3">
+                 <User className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-opacity" />
+                 HUMAN
+              </span>
+            </button>
+            
+            <button
+              onClick={() => handleAnswer(true)}
+              disabled={hasAnswered}
+              className={`relative overflow-hidden group p-8 rounded-3xl font-black text-2xl tracking-wide transition-all duration-300 ${
+                hasAnswered 
+                  ? q.is_ai === 1 
+                    ? 'bg-primary/20 text-primary border-primary/50 border-2 shadow-[0_0_30px_rgba(139,92,246,0.4)]' 
+                    : 'bg-white/5 text-muted-foreground opacity-50 border-2 border-transparent grayscale'
+                  : 'bg-[#111827] hover:bg-[#1f2937] text-white border-2 border-white/10 hover:border-primary/50 hover:scale-[1.02] shadow-xl'
+              }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              {hasAnswered && q.is_ai === 1 && <Check className="absolute top-1/2 right-8 -translate-y-1/2 w-10 h-10 text-primary" />}
+              <span className="flex items-center justify-center gap-3">
+                <Bot className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-opacity" />
+                AI GENERATED
+              </span>
+            </button>
+          </>
+        )}
+      </div>    </div>
 
       {/* Educational Explanation Card */}
       <AnimatePresence>
@@ -627,7 +667,11 @@ function PlayAreaContent() {
                   </div>
                 )}
                 <h4 className="text-xl font-bold text-white">
-                  Truth: This content is <span className={q.is_ai ? 'text-primary' : 'text-green-400'}>{q.is_ai === 1 ? 'AI Generated' : 'Human Created'}</span>
+                  {q.type === 'multiple_choice' ? (
+                     <>Truth: The correct answer is <span className="text-primary">{JSON.parse(q.options || "[]")[q.correct_option || 0]}</span></>
+                  ) : (
+                     <>Truth: This content is <span className={q.is_ai ? 'text-primary' : 'text-green-400'}>{q.is_ai === 1 ? 'AI Generated' : 'Human Created'}</span></>
+                  )}
                 </h4>
               </div>
               
@@ -635,7 +679,7 @@ function PlayAreaContent() {
                 <h5 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-3 flex items-center gap-2">
                    <BrainCircuit className="w-4 h-4" /> Educational Analysis
                 </h5>
-                <p className="text-gray-200 leading-relaxed text-base md:text-lg font-medium">
+                <p className="text-gray-100 leading-relaxed text-lg md:text-xl font-medium">
                   {q.explanation}
                 </p>
               </div>

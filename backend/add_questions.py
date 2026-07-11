@@ -1,7 +1,12 @@
-from database import SessionLocal
+from database import SessionLocal, Base, engine
 import models
+import json
 
 db = SessionLocal()
+
+# Drop and recreate to apply schema changes
+models.Question.__table__.drop(engine, checkfirst=True)
+models.Question.__table__.create(engine)
 
 new_questions = [
     models.Question(
@@ -14,7 +19,7 @@ new_questions = [
     ),
     models.Question(
         type="artwork",
-        content_url="/ai_artwork.png",
+        content_url="https://rishithareddychalla.github.io/HumanVSAI/ai_artwork.png",
         is_ai=1,
         explanation="Notice the neon signs contain unreadable, gibberish characters—a classic hallmark of AI generation. The architectural structures also blend into each other impossibly.",
         difficulty="medium",
@@ -46,7 +51,7 @@ new_questions = [
     ),
     models.Question(
         type="voice",
-        content_url="/ai_voice.mp3",
+        content_url="https://rishithareddychalla.github.io/HumanVSAI/ai_voice.mp3",
         text_content="[Audio Transcript]: 'Hello, my name is John. I am calling to inform you about your car's extended warranty. Please press 1 to speak with a representative.'\n(Audio sounds slightly robotic, with unnatural pacing between words and perfect monotone pitch).",
         is_ai=1,
         explanation="The audio (perfect monotone, unnatural pacing) indicates a text-to-speech AI generation. Real humans have pitch variation, breaths, and natural pauses.",
@@ -55,7 +60,7 @@ new_questions = [
     ),
     models.Question(
         type="voice",
-        content_url="/human_voice.ogg",
+        content_url="https://rishithareddychalla.github.io/HumanVSAI/human_voice.ogg",
         text_content="[Audio Transcript]: 'Uhh, yeah, so I was thinking maybe we could... I don't know, grab coffee later? If you're free, that is.'\n(Audio contains natural 'umms', slight stuttering, and background room noise).",
         is_ai=0,
         explanation="This is human. The presence of filler words ('Uhh'), pauses, and background noise are characteristics of authentic human speech.",
@@ -80,16 +85,33 @@ new_questions = [
     ),
     models.Question(
         type="video",
-        content_url="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        content_url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
         is_ai=0,
         explanation="This is real (human-made animation). AI video generation currently struggles with maintaining consistent physics, geometry, and character consistency over long periods.",
         difficulty="medium",
         category="Video"
+    ),
+    models.Question(
+        type="multiple_choice",
+        text_content="Which of the following is the most common artifact found in early AI-generated images?",
+        options=json.dumps(["Perfectly symmetrical faces", "Mangled hands and fingers", "Hyper-realistic shadows", "Accurate text rendering"]),
+        correct_option=1,
+        explanation="Historically, AI models have notoriously struggled with generating human hands, often producing too many fingers or impossible joints.",
+        difficulty="easy",
+        category="General"
+    ),
+    models.Question(
+        type="multiple_choice",
+        text_content="In AI-generated text, 'perplexity' refers to:",
+        options=json.dumps(["How confused the user is by the text", "A measure of how predictable the text is to the model", "The grammatical complexity of sentences", "The emotional tone of the content"]),
+        correct_option=1,
+        explanation="In NLP, perplexity measures how well a probability model predicts a sample. Lower perplexity means the text is highly predictable (common in AI).",
+        difficulty="hard",
+        category="Text"
     )
 ]
 
-# delete all existing questions to ensure clean state and add both old and new ones for consistency
-db.query(models.Question).delete()
+# We already dropped the table above, so no need to delete rows.
 
 # Re-add the 4 old ones + the new ones
 samples = [
@@ -103,7 +125,7 @@ samples = [
     ),
     models.Question(
         type="image",
-        content_url="/ai_image.png",
+        content_url="https://rishithareddychalla.github.io/HumanVSAI/ai_image.png",
         is_ai=1,
         explanation="This is AI generated. Look closely at the unnatural blending of objects in the background, and hyper-smooth textures.",
         difficulty="medium",
